@@ -388,7 +388,7 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
         </div>
         <div class="user-info">
             <span>Καθηγητής: <?php echo htmlspecialchars($professor_name); ?></span>
-            <a href="logout.php" class="logout-btn">Αποσύνδεση</a>
+            <a href="login.html" class="logout-btn">Αποσύνδεση</a>
         </div>
     </div>
 
@@ -437,7 +437,7 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
         <div id="myTheses" class="section">
             <div class="section-header">
                 <h2>Οι Διπλωματικές μου</h2>
-                <button class="back-btn" onclick="showSection('dashboard')">Επιστροφή</button>
+                <button class="back-btn" onclick="showSection('dashboard')"><- Πίσω</button>
             </div>
             
             <div class="filters">
@@ -460,7 +460,7 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
         <div id="newThesis" class="section">
             <div class="section-header">
                 <h2>Δημιουργία Νέας Διπλωματικής</h2>
-                <button class="back-btn" onclick="showSection('dashboard')">Επιστροφή</button>
+                <button class="back-btn" onclick="showSection('dashboard')"><- Πίσω</button>
             </div>
             
             <form id="newThesisForm">
@@ -484,7 +484,7 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
         <div id="committees" class="section">
             <div class="section-header">
                 <h2>Προσκλήσεις Εξεταστικών Επιτροπών</h2>
-                <button class="back-btn" onclick="showSection('dashboard')">Επιστροφή</button>
+                <button class="back-btn" onclick="showSection('dashboard')"><- Πίσω</button>
             </div>
             
             <div id="invitationsList" class="items-grid">
@@ -496,7 +496,7 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
         <div id="grading" class="section">
             <div class="section-header">
                 <h2>Βαθμολόγηση</h2>
-                <button class="back-btn" onclick="showSection('dashboard')">Επιστροφή</button>
+                <button class="back-btn" onclick="showSection('dashboard')"><- Πίσω</button>
             </div>
             
             <div id="gradingList" class="items-grid">
@@ -508,7 +508,7 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
         <div id="assignThesis" class="section">
             <div class="section-header">
                 <h2>Ανάθεση Θέματος</h2>
-                <button class="back-btn" onclick="showSection('dashboard')">Επιστροφή</button>
+                <button class="back-btn" onclick="showSection('dashboard')"><- Πίσω</button>
             </div>
             
             <div class="form-group">
@@ -531,7 +531,7 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
         <div id="statistics" class="section">
             <div class="section-header">
                 <h2>Στατιστικά</h2>
-                <button class="back-btn" onclick="showSection('dashboard')">Επιστροφή</button>
+                <button class="back-btn" onclick="showSection('dashboard')"><- Πίσω</button>
             </div>
             
             <div id="statsContainer">
@@ -669,19 +669,19 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
 
         // Get action buttons
         function getActionButtons(thesis) {
-            if (thesis.role !== 'supervisor') return '';
-            
-            switch (thesis.status) {
-                case 'Ypo Anathesi':
-                    return '<button class="btn btn-danger" onclick="cancelThesis(' + thesis.id + ')">Ακύρωση</button>';
-                case 'Energi':
-                    return '<button class="btn btn-success" onclick="moveToExamination(' + thesis.id + ')">Υπό Εξέταση</button>';
-                case 'Ypo Eksetasi':
-                    return '<button class="btn btn-warning" onclick="openGradingModal(' + thesis.id + ')">Βαθμολόγηση</button>';
-                default:
-                    return '';
-            }
-        }
+    if (thesis.role !== 'supervisor') return '';
+    
+    switch (thesis.status) {
+        case 'Ypo Anathesi':
+            return '<button class="btn btn-danger" onclick="cancelThesis(' + thesis.id + ')">Ακύρωση</button>';
+        case 'Energi':
+            return '<button class="btn btn-success" onclick="moveToExamination(' + thesis.id + ')">Υπό Εξέταση</button>';
+        case 'Ypo Eksetasi':
+            return '<button class="btn btn-info" onclick="showThesisDetails(' + thesis.id + ')">Λεπτομέρειες</button>';
+        default:
+            return '';
+    }
+}
 
         // Filter theses
         function filterTheses() {
@@ -789,25 +789,83 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
                 if (data.success && data.theses.length > 0) {
                     let html = '';
                     data.theses.forEach(thesis => {
+                        let statusText = 'Δεν έχει ενεργοποιηθεί';
+                        let buttonHtml = '';
+                        
+                        if (thesis.examiner_role === 'supervisor' && !thesis.grading_enabled) {
+                            buttonHtml = `<button class="btn btn-success" onclick="enableGrading(${thesis.id})">Ενεργοποίηση Βαθμολόγησης</button>`;
+                        } else if (thesis.grading_enabled && !thesis.has_graded) {
+                            statusText = 'Διαθέσιμο για βαθμολόγηση';
+                            buttonHtml = `<button class="btn btn-warning" onclick="openGradingModal(${thesis.id})">Βαθμολόγηση</button>`;
+                        } else if (thesis.has_graded) {
+                            statusText = 'Έχετε βαθμολογήσει';
+                            buttonHtml = `<button class="btn btn-primary" onclick="openGradingModal(${thesis.id})">Επεξεργασία Βαθμών</button>`;
+                        }
+                        
+                        if (thesis.has_thesis_file) {
+                            buttonHtml += ` <button class="btn btn-info" onclick="downloadThesisFile(${thesis.id})" style="margin-left: 5px;">Κατέβασμα Αρχείου</button>`;
+                        }
+                        
                         html += `
                             <div class="item-card">
                                 <div class="item-title">${thesis.title}</div>
                                 <div class="item-meta">
-                                    <div>Φοιτητής: ${thesis.student_name}</div>
-                                    <div>Ημερομηνία: ${thesis.present_date || 'Δεν έχει οριστεί'}</div>
+                                    <div>Φοιτητής: ${thesis.student_name} (${thesis.student_am})</div>
+                                    <div>Ρόλος: ${getRoleText(thesis.examiner_role)}</div>
+                                    <div>Κατάσταση: ${statusText}</div>
+                                    ${thesis.present_date ? `<div>Ημερομηνία: ${thesis.present_date}</div>` : ''}
+                                    ${thesis.final_grade ? `<div>Τελικός Βαθμός: ${thesis.final_grade}/10</div>` : ''}
                                 </div>
                                 <div class="item-actions">
-                                    <button class="btn btn-warning" onclick="openGradingModal(${thesis.id})">Βαθμολόγηση</button>
+                                    ${buttonHtml}
                                 </div>
                             </div>
                         `;
                     });
                     container.innerHTML = html;
-                } else {
+                } else if (data.success) {
                     container.innerHTML = '<div class="no-data">Δεν υπάρχουν διπλωματικές για βαθμολόγηση</div>';
+                } else {
+                    container.innerHTML = `<div class="no-data">Σφάλμα: ${data.message}</div>`;
                 }
             } catch (error) {
-                document.getElementById('gradingList').innerHTML = '<div class="no-data">Σφάλμα φόρτωσης</div>';
+                console.error('Grading list error:', error);
+                document.getElementById('gradingList').innerHTML = '<div class="no-data">Σφάλμα σύνδεσης</div>';
+            }
+        }
+        // Enable grading
+        async function enableGrading(thesisId) {
+            if (!confirm('Ενεργοποίηση βαθμολόγησης; Μετά από αυτό όλα τα μέλη της τριμελούς θα μπορούν να βαθμολογήσουν.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`professor/professor_grading.php?action=enable_grading&thesis_id=${thesisId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Η βαθμολόγηση ενεργοποιήθηκε επιτυχώς');
+                    loadGradingList();
+                } else {
+                    alert('Σφάλμα: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Enable grading error:', error);
+                alert('Σφάλμα ενεργοποίησης');
+            }
+        }
+        // Download thesis file
+        function downloadThesisFile(thesisId) {
+            window.open(`professor/professor_grading.php?action=download_thesis_file&thesis_id=${thesisId}`, '_blank');
+        }
+
+        // Get role text 
+        function getRoleText(role) {
+            switch (role) {
+                case 'supervisor': return 'Επιβλέπων';
+                case 'examiner1': return 'Μέλος Τριμελούς 1';
+                case 'examiner2': return 'Μέλος Τριμελούς 2';
+                default: return 'Άγνωστος ρόλος';
             }
         }
 
@@ -818,57 +876,114 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
                 const data = await response.json();
                 
                 if (data.success) {
+                    const thesis = data.thesis;
+                    const grades = data.grades;
+                    const examinerRole = data.examiner_role;
+                    
+                    // Προσδιορισμός των βαθμών που αντιστοιχούν στον τρέχοντα εξεταστή
+                    let currentGrades = { grade1: '', grade2: '', grade3: '', grade4: '' };
+                    if (grades) {
+                        switch (examinerRole) {
+                            case 'supervisor':
+                                currentGrades = {
+                                    grade1: grades.grade1_1 || '',
+                                    grade2: grades.grade1_2 || '',
+                                    grade3: grades.grade1_3 || '',
+                                    grade4: grades.grade1_4 || ''
+                                };
+                                break;
+                            case 'examiner1':
+                                currentGrades = {
+                                    grade1: grades.grade2_1 || '',
+                                    grade2: grades.grade2_2 || '',
+                                    grade3: grades.grade2_3 || '',
+                                    grade4: grades.grade2_4 || ''
+                                };
+                                break;
+                            case 'examiner2':
+                                currentGrades = {
+                                    grade1: grades.grade3_1 || '',
+                                    grade2: grades.grade3_2 || '',
+                                    grade3: grades.grade3_3 || '',
+                                    grade4: grades.grade3_4 || ''
+                                };
+                                break;
+                        }
+                    }
+                    
                     document.getElementById('gradingModalBody').innerHTML = `
                         <form id="gradingForm" class="grading-form">
-                            <h4>Βαθμολόγηση: ${data.thesis.title}</h4>
-                            <p>Φοιτητής: ${data.thesis.student_name}</p>
+                            <h4>Βαθμολόγηση: ${thesis.title}</h4>
+                            <p><strong>Φοιτητής:</strong> ${thesis.student_name} (${thesis.student_am})</p>
+                            <p><strong>Ρόλος σας:</strong> ${getRoleText(examinerRole)}</p>
                             
-                            <div class="criteria-group">
-                                <h5>Κριτήριο 1 - Συγγραφή</h5>
-                                <div class="grade-inputs">
-                                    <label>Συγγραφή (60%):</label>
-                                    <input type="number" name="grade1_1" min="0" max="10" step="0.1" value="${data.grades?.grade1_1 || ''}" required>
-                                    <label>Βιβλιογραφία (15%):</label>
-                                    <input type="number" name="grade1_2" min="0" max="10" step="0.1" value="${data.grades?.grade1_2 || ''}" required>
-                                    <label>Καινοτομία (15%):</label>
-                                    <input type="number" name="grade1_3" min="0" max="10" step="0.1" value="${data.grades?.grade1_3 || ''}" required>
-                                    <label>Δυσκολία (10%):</label>
-                                    <input type="number" name="grade1_4" min="0" max="10" step="0.1" value="${data.grades?.grade1_4 || ''}" required>
+                            <div class="committee-info" style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                                <h5>Τριμελής Επιτροπή:</h5>
+                                <p><strong>Επιβλέπων:</strong> ${thesis.supervisor_name || 'Δεν έχει οριστεί'}</p>
+                                <p><strong>Μέλος 1:</strong> ${thesis.examiner1_name || 'Δεν έχει οριστεί'}</p>
+                                <p><strong>Μέλος 2:</strong> ${thesis.examiner2_name || 'Δεν έχει οριστεί'}</p>
+                            </div>
+                            
+                            <div class="grading-criteria">
+                                <h5>Κριτήρια Αξιολόγησης</h5>
+                                <p style="margin-bottom: 20px; font-size: 14px; color: #666;">
+                                    Δώστε βαθμούς από 0 έως 10 για κάθε κριτήριο
+                                </p>
+                                
+                                <div class="form-group">
+                                    <label>Περιεχόμενο Εργασίας (60%):</label>
+                                    <input type="number" name="grade1" min="0" max="10" step="0.1" 
+                                           value="${currentGrades.grade1}" required 
+                                           placeholder="Βαθμός για περιεχόμενο">
+                                    <small>Ποιότητα του περιεχομένου, πληρότητα, σωστότητα</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Παρουσίαση Εργασίας (15%):</label>
+                                    <input type="number" name="grade2" min="0" max="10" step="0.1" 
+                                           value="${currentGrades.grade2}" required
+                                           placeholder="Βαθμός για παρουσίαση">
+                                    <small>Ποιότητα παρουσίασης, επικοινωνία, απαντήσεις σε ερωτήσεις</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Συγγραφή Εργασίας (15%):</label>
+                                    <input type="number" name="grade3" min="0" max="10" step="0.1" 
+                                           value="${currentGrades.grade3}" required
+                                           placeholder="Βαθμός για συγγραφή">
+                                    <small>Ποιότητα συγγραφής, δομή, βιβλιογραφία</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Βαθμός Δυσκολίας (10%):</label>
+                                    <input type="number" name="grade4" min="0" max="10" step="0.1" 
+                                           value="${currentGrades.grade4}" required
+                                           placeholder="Βαθμός για δυσκολία">
+                                    <small>Επίπεδο δυσκολίας και καινοτομία του θέματος</small>
                                 </div>
                             </div>
                             
-                            <div class="criteria-group">
-                                <h5>Κριτήριο 2 - Υλοποίηση</h5>
-                                <div class="grade-inputs">
-                                    <label>Υλοποίηση (60%):</label>
-                                    <input type="number" name="grade2_1" min="0" max="10" step="0.1" value="${data.grades?.grade2_1 || ''}" required>
-                                    <label>Αρχιτεκτονική (15%):</label>
-                                    <input type="number" name="grade2_2" min="0" max="10" step="0.1" value="${data.grades?.grade2_2 || ''}" required>
-                                    <label>Τεκμηρίωση (15%):</label>
-                                    <input type="number" name="grade2_3" min="0" max="10" step="0.1" value="${data.grades?.grade2_3 || ''}" required>
-                                    <label>Πληρότητα (10%):</label>
-                                    <input type="number" name="grade2_4" min="0" max="10" step="0.1" value="${data.grades?.grade2_4 || ''}" required>
+                            <div class="weighted-average" style="margin: 20px 0; padding: 15px; background: #e8f4f8; border-radius: 8px;">
+                                <h6>Σταθμισμένος Μέσος Όρος των Βαθμών σας:</h6>
+                                <div id="weightedAverage" style="font-size: 18px; font-weight: bold; color: #2c3e50;">
+                                    -
                                 </div>
+                                <small style="color: #666;">
+                                    Τύπος: (Περιεχόμενο × 0.6) + (Παρουσίαση × 0.15) + (Συγγραφή × 0.15) + (Δυσκολία × 0.1)
+                                </small>
                             </div>
                             
-                            <div class="criteria-group">
-                                <h5>Κριτήριο 3 - Παρουσίαση</h5>
-                                <div class="grade-inputs">
-                                    <label>Παρουσίαση (60%):</label>
-                                    <input type="number" name="grade3_1" min="0" max="10" step="0.1" value="${data.grades?.grade3_1 || ''}" required>
-                                    <label>Απαντήσεις (15%):</label>
-                                    <input type="number" name="grade3_2" min="0" max="10" step="0.1" value="${data.grades?.grade3_2 || ''}" required>
-                                    <label>Επίδειξη (15%):</label>
-                                    <input type="number" name="grade3_3" min="0" max="10" step="0.1" value="${data.grades?.grade3_3 || ''}" required>
-                                    <label>Χρόνος (10%):</label>
-                                    <input type="number" name="grade3_4" min="0" max="10" step="0.1" value="${data.grades?.grade3_4 || ''}" required>
+                            ${grades && grades.final_grade ? `
+                                <div style="margin: 20px 0; padding: 15px; background: #d4edda; border-radius: 8px; text-align: center;">
+                                    <h6>Τελικός Βαθμός Διπλωματικής</h6>
+                                    <div style="font-size: 24px; font-weight: bold; color: #155724;">
+                                        ${grades.final_grade}/10
+                                    </div>
+                                    <small>Μέσος όρος των σταθμισμένων βαθμών όλων των εξεταστών</small>
                                 </div>
-                            </div>
+                            ` : ''}
                             
-                            <div class="final-grade">
-                                Τελικός Βαθμός: <span id="finalGrade">-</span>
-                            </div>
-                            
+                            <input type="hidden" name="examiner_role" value="${examinerRole}">
                             <button type="submit" class="submit-btn">Καταχώρηση Βαθμών</button>
                         </form>
                     `;
@@ -878,19 +993,47 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
                     // Add event listeners for grade calculation
                     const inputs = document.querySelectorAll('#gradingForm input[type="number"]');
                     inputs.forEach(input => {
-                        input.addEventListener('input', calculateGrade);
+                        input.addEventListener('input', calculateWeightedAverage);
                     });
                     
                     // Setup form submission
                     document.getElementById('gradingForm').addEventListener('submit', function(e) {
                         e.preventDefault();
-                        submitGrades(thesisId);
+                        submitGrades(thesisId, examinerRole);
                     });
                     
-                    calculateGrade(); // Initial calculation
+                    calculateWeightedAverage(); // Initial calculation
+                } else {
+                    alert('Σφάλμα: ' + data.message);
                 }
             } catch (error) {
+                console.error('Grading modal error:', error);
                 alert('Σφάλμα φόρτωσης φόρμας βαθμολόγησης');
+            }
+        }
+
+        // Calculate weighted average
+        function calculateWeightedAverage() {
+            const form = document.getElementById('gradingForm');
+            if (!form) return;
+            
+            const grade1 = parseFloat(form.grade1.value) || 0;
+            const grade2 = parseFloat(form.grade2.value) || 0;
+            const grade3 = parseFloat(form.grade3.value) || 0;
+            const grade4 = parseFloat(form.grade4.value) || 0;
+            
+            // Σταθμισμένος μέσος όρος: 60% + 15% + 15% + 10%
+            const weightedAvg = (grade1 * 0.6) + (grade2 * 0.15) + (grade3 * 0.15) + (grade4 * 0.1);
+            
+            const avgElement = document.getElementById('weightedAverage');
+            if (avgElement) {
+                if (grade1 || grade2 || grade3 || grade4) {
+                    avgElement.textContent = weightedAvg.toFixed(2) + '/10';
+                    avgElement.style.color = weightedAvg >= 5 ? '#27ae60' : '#e74c3c';
+                } else {
+                    avgElement.textContent = '-';
+                    avgElement.style.color = '#2c3e50';
+                }
             }
         }
 
@@ -926,13 +1069,23 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
         }
 
         // Submit grades
-        async function submitGrades(thesisId) {
+        async function submitGrades(thesisId, examinerRole) {
             const form = document.getElementById('gradingForm');
             const formData = new FormData(form);
             
-            const grades = {};
-            for (let [key, value] of formData.entries()) {
-                grades[key] = parseFloat(value);
+            const grades = {
+                grade1: parseFloat(formData.get('grade1')),
+                grade2: parseFloat(formData.get('grade2')),
+                grade3: parseFloat(formData.get('grade3')),
+                grade4: parseFloat(formData.get('grade4'))
+            };
+            
+            // Validation
+            for (let key in grades) {
+                if (isNaN(grades[key]) || grades[key] < 0 || grades[key] > 10) {
+                    alert(`Παρακαλώ εισάγετε έγκυρο βαθμό (0-10) για όλα τα κριτήρια`);
+                    return;
+                }
             }
             
             try {
@@ -942,7 +1095,8 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
                     body: JSON.stringify({
                         action: 'submit_grades',
                         thesis_id: thesisId,
-                        grades: grades
+                        grades: grades,
+                        examiner_role: examinerRole
                     })
                 });
                 
@@ -956,6 +1110,7 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
                     alert('Σφάλμα: ' + data.message);
                 }
             } catch (error) {
+                console.error('Submit grades error:', error);
                 alert('Σφάλμα κατά την καταχώρηση');
             }
         }
