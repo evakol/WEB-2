@@ -782,7 +782,17 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
         async function loadGradingList() {
             try {
                 const response = await fetch('professor/professor_grading.php?action=get_grading_list');
-                const data = await response.json();
+                const responseText = await response.text();
+                console.log('Raw response:', responseText);
+                let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('JSON Parse Error:', parseError);
+            console.error('Response was:', responseText);
+            throw new Error('Invalid JSON response');
+        }
+        
                 
                 const container = document.getElementById('gradingList');
                 
@@ -828,10 +838,12 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
                 } else {
                     container.innerHTML = `<div class="no-data">Σφάλμα: ${data.message}</div>`;
                 }
-            } catch (error) {
-                console.error('Grading list error:', error);
-                document.getElementById('gradingList').innerHTML = '<div class="no-data">Σφάλμα σύνδεσης</div>';
-            }
+            } 
+            catch (error) {
+        console.error('Grading list error:', error);
+        console.error('Error details:', error.message);
+        document.getElementById('gradingList').innerHTML = '<div class="no-data">Σφάλμα σύνδεσης</div>';
+    }
         }
         // Enable grading
         async function enableGrading(thesisId) {
@@ -931,35 +943,31 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
                                 </p>
                                 
                                 <div class="form-group">
-                                    <label>Περιεχόμενο Εργασίας (60%):</label>
+                                    <label>Ποιότητα της Δ.Ε. (60%):</label>
                                     <input type="number" name="grade1" min="0" max="10" step="0.1" 
                                            value="${currentGrades.grade1}" required 
-                                           placeholder="Βαθμός για περιεχόμενο">
-                                    <small>Ποιότητα του περιεχομένου, πληρότητα, σωστότητα</small>
+                                           placeholder="Προσθέστε τον βαθμό σας">
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label>Παρουσίαση Εργασίας (15%):</label>
+                                    <label>Χρονικό Διάστημα (15%):</label>
                                     <input type="number" name="grade2" min="0" max="10" step="0.1" 
                                            value="${currentGrades.grade2}" required
-                                           placeholder="Βαθμός για παρουσίαση">
-                                    <small>Ποιότητα παρουσίασης, επικοινωνία, απαντήσεις σε ερωτήσεις</small>
+                                           placeholder="Προσθέστε τον βαθμό σας">
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label>Συγγραφή Εργασίας (15%):</label>
+                                    <label>Ποιότητα κια Πληρότητα (15%):</label>
                                     <input type="number" name="grade3" min="0" max="10" step="0.1" 
                                            value="${currentGrades.grade3}" required
-                                           placeholder="Βαθμός για συγγραφή">
-                                    <small>Ποιότητα συγγραφής, δομή, βιβλιογραφία</small>
+                                           placeholder="Προσθέστε τον βαθμό σας">
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label>Βαθμός Δυσκολίας (10%):</label>
+                                    <label>Συνολική Εικόνα (10%):</label>
                                     <input type="number" name="grade4" min="0" max="10" step="0.1" 
                                            value="${currentGrades.grade4}" required
-                                           placeholder="Βαθμός για δυσκολία">
-                                    <small>Επίπεδο δυσκολίας και καινοτομία του θέματος</small>
+                                           placeholder="Προσθέστε τον βαθμό σας">
                                 </div>
                             </div>
                             
@@ -1080,6 +1088,14 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
                 grade4: parseFloat(formData.get('grade4'))
             };
             
+            console.log('Sending grades:', {
+            action: 'submit_grades',
+            thesis_id: thesisId,
+            grades: grades,
+            examiner_role: examinerRole
+            });
+
+            
             // Validation
             for (let key in grades) {
                 if (isNaN(grades[key]) || grades[key] < 0 || grades[key] > 10) {
@@ -1101,6 +1117,8 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
                 });
                 
                 const data = await response.json();
+                const responseText = await response.text();
+                console.log('Submit grades response:', responseText);
                 
                 if (data.success) {
                     alert('Οι βαθμοί καταχωρήθηκαν επιτυχώς');
