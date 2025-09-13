@@ -25,7 +25,13 @@ if ($prof_result->num_rows === 0) {
 $professor_data = $prof_result->fetch_assoc();
 $professor_id = $professor_data['ID'];
 
-$action = $_GET['action'] ?? $_POST['action'] ?? '';
+$action = $_GET['action'] ?? '';
+
+if (empty($action) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $action = $input['action'] ?? '';
+}
+
 
 switch ($action) {
     case 'get_grading_list':
