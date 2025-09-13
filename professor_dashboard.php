@@ -722,61 +722,68 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
         }
 
         // Load committee invitations
-        async function loadCommitteeInvitations() {
-            try {
-                const response = await fetch('professor/professor_committees.php?action=get_invitations');
-                const data = await response.json();
-                
-                const container = document.getElementById('invitationsList');
-                
-                if (data.success && data.invitations.length > 0) {
-                    let html = '';
-                    data.invitations.forEach(inv => {
-                        html += `
-                            <div class="item-card">
-                                <div class="item-title">${inv.thesis_title}</div>
-                                <div class="item-meta">
-                                    <div>Επιβλέπων: ${inv.supervisor_name}</div>
-                                    <div>Φοιτητής: ${inv.student_name}</div>
-                                </div>
-                                <div class="item-actions">
-                                    <button class="btn btn-success" onclick="respondInvitation(${inv.diplwm_id}, 'accept')">Αποδοχή</button>
-                                    <button class="btn btn-danger" onclick="respondInvitation(${inv.diplwm_id}, 'reject')">Απόρριψη</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    container.innerHTML = html;
-                } else {
-                    container.innerHTML = '<div class="no-data">Δεν υπάρχουν προσκλήσεις</div>';
-                }
-            } catch (error) {
-                document.getElementById('invitationsList').innerHTML = '<div class="no-data">Σφάλμα φόρτωσης</div>';
+    async function loadCommitteeInvitations() {
+     try {
+        const response = await fetch('professor/professor_committees.php?action=get_invitations');
+        const data = await response.json();
+        
+        console.log('Invitations data:', data); // Πρόσθεσε για debugging
+        
+        const container = document.getElementById('invitationsList');
+        
+        if (data.success && data.invitations.length > 0) {
+            let html = '';
+            data.invitations.forEach(inv => {
+                html += `
+                    <div class="item-card">
+                        <div class="item-title">${inv.thesis_title}</div>
+                        <div class="item-meta">
+                            <div>Επιβλέπων: ${inv.supervisor_name}</div>
+                            <div>Φοιτητής: ${inv.student_name}</div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn btn-success" onclick="respondInvitation(${inv.diplwm_id}, 'accept')">Αποδοχή</button>
+                            <button class="btn btn-danger" onclick="respondInvitation(${inv.diplwm_id}, 'reject')">Απόρριψη</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            } else {
+               container.innerHTML = '<div class="no-data">Δεν υπάρχουν προσκλήσεις</div>';
             }
-        }
-
+           } catch (error) {
+             console.error('Committee invitations error:', error); // Πρόσθεσε για debugging
+             document.getElementById('invitationsList').innerHTML = '<div class="no-data">Σφάλμα φόρτωσης</div>';
+             }
+    } 
         // Respond to invitation
         async function respondInvitation(diplwmId, response) {
-            try {
-                const res = await fetch('professor/professor_committees.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'respond_invitation',
-                        diplwm_id: diplwmId,
-                        response: response
-                    })
-                });
-                
-                const data = await res.json();
-                if (data.success) {
-                    alert('Η απάντηση καταχωρήθηκε');
-                    loadCommitteeInvitations();
-                }
-            } catch (error) {
-                alert('Σφάλμα');
-            }
+    console.log('Responding to invitation:', diplwmId, response); // Debug
+    
+    try {
+        const res = await fetch('professor/professor_committees.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'respond_invitation',
+                diplwm_id: diplwmId,
+                response: response
+            })
+        });
+        
+        const data = await res.json();
+        if (data.success) {
+            alert('Η απάντηση καταχωρήθηκε');
+            loadCommitteeInvitations();
+        } else {
+            alert('Σφάλμα: ' + data.message);
         }
+    } catch (error) {
+        console.error('Error responding to invitation:', error);
+        alert('Σφάλμα απάντησης');
+    }
+}
 
         // Load grading list
         async function loadGradingList() {
