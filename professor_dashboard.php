@@ -1079,22 +1079,15 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
         // Submit grades
         async function submitGrades(thesisId, examinerRole) {
             const form = document.getElementById('gradingForm');
-            const formData = new FormData(form);
-            
-            const grades = {
-                grade1: parseFloat(formData.get('grade1')),
-                grade2: parseFloat(formData.get('grade2')),
-                grade3: parseFloat(formData.get('grade3')),
-                grade4: parseFloat(formData.get('grade4'))
+    
+           const grades = {
+              grade1: parseFloat(form.querySelector('input[name="grade1"]').value),
+              grade2: parseFloat(form.querySelector('input[name="grade2"]').value),
+              grade3: parseFloat(form.querySelector('input[name="grade3"]').value),
+              grade4: parseFloat(form.querySelector('input[name="grade4"]').value)
             };
-            
-            console.log('Sending grades:', {
-            action: 'submit_grades',
-            thesis_id: thesisId,
-            grades: grades,
-            examiner_role: examinerRole
-            });
-
+    
+            console.log('Grades to submit:', grades);
             
             // Validation
             for (let key in grades) {
@@ -1105,20 +1098,18 @@ $professor_name = $user_data['name'] . ' ' . $user_data['surname'];
             }
             
             try {
-                const response = await fetch('professor/professor_grading.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'submit_grades',
-                        thesis_id: thesisId,
-                        grades: grades,
-                        examiner_role: examinerRole
-                    })
-                });
-                
-                const data = await response.json();
-                const responseText = await response.text();
-                console.log('Submit grades response:', responseText);
+              const response = await fetch('professor/professor_grading.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'submit_grades',
+                thesis_id: thesisId,
+                grades: grades,
+                examiner_role: examinerRole
+              })
+            });
+            
+            const data = await response.json();
                 
                 if (data.success) {
                     alert('Οι βαθμοί καταχωρήθηκαν επιτυχώς');
