@@ -15,7 +15,12 @@ $prof_query->bind_param("i", $user_id);
 $prof_query->execute();
 $professor_id = $prof_query->get_result()->fetch_assoc()['ID'];
 
-$action = $_GET['action'] ?? $_POST['action'] ?? '';
+$action = $_GET['action'] ?? '';
+
+if (empty($action) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $action = $input['action'] ?? '';
+}
 
 switch ($action) {
     case 'get_invitations':
