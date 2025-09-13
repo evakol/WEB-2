@@ -353,7 +353,7 @@ $student_name = $user_data['name'] . ' ' . $user_data['surname'];
     <!-- Thesis Section -->
     <div id="thesisSection" class="section">
         <div class="section-content">
-            <button class="back-btn" onclick="showDashboard()">← Επιστροφή στο Dashboard</button>
+            <button class="back-btn" onclick="showDashboard()">← Πίσω</button>
             <h2>Προβολή θέματος</h2>
             <div id="thesisDisplay">
                 <p>Φόρτωση στοιχείων διπλωματικής...</p>
@@ -364,7 +364,7 @@ $student_name = $user_data['name'] . ' ' . $user_data['surname'];
     <!-- Profile Section -->
     <div id="profileSection" class="section">
         <div class="section-content">
-            <button class="back-btn" onclick="showDashboard()">← Επιστροφή στο Dashboard</button>
+            <button class="back-btn" onclick="showDashboard()">← Πίσω</button>
             <h2>Επεξεργασία Προφίλ</h2>
             <div id="profileDisplay">
                 <p>Φόρτωση προφίλ...</p>
@@ -375,7 +375,7 @@ $student_name = $user_data['name'] . ' ' . $user_data['surname'];
     <!-- Manage Section -->
     <div id="manageSection" class="section">
         <div class="section-content">
-            <button class="back-btn" onclick="showDashboard()">← Επιστροφή στο Dashboard</button>
+            <button class="back-btn" onclick="showDashboard()">← Πίσω</button>
             <h2>Διαχείριση διπλωματικής εργασίας</h2>
             <div id="manageDisplay">
                 <p>Φόρτωση επιλογών διαχείρισης...</p>
