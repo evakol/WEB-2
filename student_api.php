@@ -25,6 +25,13 @@ if ($student_result->num_rows === 0) {
     exit;
 }
 
+if (empty($action) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    if ($input && isset($input['action'])) {
+        $action = $input['action'];
+    }
+}
+
 $student_data = $student_result->fetch_assoc();
 $student_id = $student_data['ID'];
 
@@ -55,7 +62,7 @@ try {
             getExamRecord($login, $student_id);
             break;
         default:
-            echo json_encode(['success' => false, 'message' => 'Invalid action']);
+            echo json_encode(['success' => false, 'message' => 'Invalid action'. $action]);
     }
 } catch (Exception $e) {
     http_response_code(500);
@@ -165,10 +172,13 @@ function updateProfile($login, $user_id) {
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
     
+    
     if (!$data) {
         echo json_encode(['success' => false, 'message' => 'Invalid data']);
         return;
     }
+
+    error_log("Update profile data: " . json_encode($data));
     
     // Validation
     $required = ['street', 'street_num', 'city', 'postcode', 'email', 'mobile_phone'];
@@ -190,8 +200,13 @@ function updateProfile($login, $user_id) {
             email = ?, mobile_phone = ?, landline_phone = ?
         WHERE user_ID = ?
     ";
-    
+
     $stmt = $login->prepare($query);
+    if (!$stmt) {
+        echo json_encode(['success' => false, 'message' => 'Prepare failed: ' . $login->error]);
+        return;
+    }
+
     $stmt->bind_param(
         "sisssssi",
         $data['street'],
@@ -207,7 +222,7 @@ function updateProfile($login, $user_id) {
     if ($stmt->execute()) {
         echo json_encode(['success' => true, 'message' => 'Τα στοιχεία ενημερώθηκαν επιτυχώς']);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Σφάλμα ενημέρωσης']);
+        echo json_encode(['success' => false, 'message' => 'Σφάλμα ενημέρωσης: ' . $stmt->error]);
     }
 }
 
@@ -267,7 +282,7 @@ function inviteProfessors($login, $student_id) {
     $data = json_decode($input, true);
     
     if (!$data || !isset($data['professor1']) || !isset($data['professor2'])) {
-        echo json_encode(['success' => false, 'message' => 'Missing data']);
+        echo json_encode(['success' => false, 'message' => 'Λείπουν δεδομένα']);
         return;
     }
     
@@ -284,6 +299,17 @@ function inviteProfessors($login, $student_id) {
     
     $thesis_data = $thesis_result->fetch_assoc();
     $thesis_id = $thesis_data['id_diplwm'];
+    
+     // Έλεγχος αν έχουν ήδη σταλεί προσκλήσεις
+    $check_existing = $login->prepare("SELECT COUNT(*) as count FROM examiners WHERE diplwm_id = ?");
+    $check_existing->bind_param("i", $thesis_id);
+    $check_existing->execute();
+    $existing_result = $check_existing->get_result()->fetch_assoc();
+    
+    if ($existing_result['count'] > 0) {
+        echo json_encode(['success' => false, 'message' => 'Έχουν ήδη σταλεί προσκλήσεις για αυτή τη διπλωματική']);
+        return;
+    }
     
     $login->autocommit(FALSE);
     
